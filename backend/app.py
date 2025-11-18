@@ -2,7 +2,9 @@ import base64
 import io
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -10,12 +12,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from PIL import Image, UnidentifiedImageError
 
-from gradcam import GradCAM
-from model import SkinLesionModel
-
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 logger = logging.getLogger(__name__)
 MAX_IMAGE_BYTES = int(os.getenv("MAX_IMAGE_BYTES", "10485760"))
+BASE_DIR = Path(__file__).resolve().parent
+
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
+from gradcam import GradCAM
+from model import SkinLesionModel
 
 
 def parse_origins() -> List[str]:
@@ -38,7 +44,7 @@ class PredictResponse(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    model_path = os.getenv("MODEL_PATH", "best_model.pth")
+    model_path = os.getenv("MODEL_PATH", str(BASE_DIR / "best_model.pth"))
     logger.info("Loading model from %s", model_path)
 
     model_service = SkinLesionModel(model_path)

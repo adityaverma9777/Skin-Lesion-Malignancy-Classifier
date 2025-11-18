@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="api-base-url" content="https://your-render-service.onrender.com" />
+    <title>Skin Lesion Classifier</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <h1>Skin Lesion Malignancy Classifier</h1>
+        <p class="subtitle">Upload an image to get prediction confidence and Grad-CAM explanation.</p>
+
+        <form id="predict-form" class="predict-form">
+          <label for="image-input" class="input-label">Select image</label>
+          <input id="image-input" name="image" type="file" accept="image/*" required />
+          <button id="submit-btn" type="submit">Predict</button>
+        </form>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <section id="result" class="result hidden">
+          <div class="result-grid">
+            <div>
+              <h2>Prediction</h2>
+              <p><strong>Label:</strong> <span id="label-value">-</span></p>
+              <p><strong>Probability:</strong> <span id="probability-value">-</span></p>
+            </div>
+            <div>
+              <h2>Grad-CAM</h2>
+              <img id="gradcam-image" alt="Grad-CAM overlay" />
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="main.js" type="module"></script>
+  </body>
+</html>
