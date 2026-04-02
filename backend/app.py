@@ -33,7 +33,10 @@ def parse_origins() -> List[str]:
 
 
 def parse_origin_regex() -> str | None:
-    return os.getenv("CORS_ORIGIN_REGEX", r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
+    return os.getenv(
+        "CORS_ORIGIN_REGEX",
+        r"(^https?://(localhost|127\.0\.0\.1)(:\d+)?$)|(^null$)",
+    )
 
 
 def pil_to_base64(image: Image.Image) -> str:

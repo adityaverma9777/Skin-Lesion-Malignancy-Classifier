@@ -151,6 +151,20 @@ $env:PORT = "8001"
 python run_server.py
 ```
 
+### Frontend error: "Cannot reach backend" or "Failed to fetch"
+
+1. Confirm backend health in browser:
+
+```powershell
+http://127.0.0.1:8000/health
+```
+
+2. Open frontend from the terminal URL (for example http://127.0.0.1:5173), not by double-clicking index.html.
+
+3. If frontend is served from another local port (for example 5500), it is now allowed by default.
+
+4. If backend is started on another port, update the meta api URL in frontend/index.html or restart with the launcher script.
+
 ## How to Check If It Is Working
 
 1. Check backend health in browser:

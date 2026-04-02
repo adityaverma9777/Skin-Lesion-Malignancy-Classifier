@@ -95,10 +95,17 @@ async function handlePredict(event) {
   } catch (error) {
     const message = error?.message || "Something went wrong.";
     if (message === "Failed to fetch") {
-      setStatus(
-        `Cannot reach backend. Make sure backend is running and reachable at ${activeBaseUrl}.`,
-        true,
-      );
+      if (window.location.protocol === "file:") {
+        setStatus(
+          "Cannot reach backend from file:// origin. Open the frontend from the dev server URL (for example http://127.0.0.1:5173).",
+          true,
+        );
+      } else {
+        setStatus(
+          `Cannot reach backend. Make sure backend is running and reachable at ${activeBaseUrl}.`,
+          true,
+        );
+      }
     } else {
       setStatus(message, true);
     }
