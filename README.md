@@ -58,13 +58,20 @@ project/
 
 ### Option 1 (Windows quick start)
 
-From project root:
+Open PowerShell in project root and run:
 
 ```powershell
 .\run-local.ps1
 ```
 
 This starts backend and frontend in separate terminals.
+
+If PowerShell blocks script execution, run this first in the same terminal:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\run-local.ps1
+```
 
 ### Option 2 (manual start)
 
