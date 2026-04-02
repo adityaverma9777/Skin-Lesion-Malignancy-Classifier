@@ -25,7 +25,10 @@ from model import SkinLesionModel
 
 
 def parse_origins() -> List[str]:
-    origins_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
+    origins_env = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173",
+    )
     return [origin.strip() for origin in origins_env.split(",") if origin.strip()]
 
 
