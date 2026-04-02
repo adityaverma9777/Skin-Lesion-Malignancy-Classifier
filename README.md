@@ -175,3 +175,5 @@ python smoke_test.py path/to/image.jpg --base-url http://127.0.0.1:8000
 
 - Frontend is already configured to call local backend at http://127.0.0.1:8000.
 - If port 5173 is occupied, frontend may run on another local port.
+- Backend CORS now allows local frontend origins on localhost/127.0.0.1 for any port by default.
+- Frontend will auto-probe local backend URLs (8000, then 8001) before predicting.

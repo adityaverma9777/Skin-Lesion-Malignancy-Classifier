@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from PIL import Image, UnidentifiedImageError
@@ -30,6 +30,10 @@ def parse_origins() -> List[str]:
         "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173",
     )
     return [origin.strip() for origin in origins_env.split(",") if origin.strip()]
+
+
+def parse_origin_regex() -> str | None:
+    return os.getenv("CORS_ORIGIN_REGEX", r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 
 
 def pil_to_base64(image: Image.Image) -> str:
@@ -60,6 +64,7 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        logger.info("Backend shutdown started")
         gradcam_service.close()
         logger.info("Grad-CAM hooks cleaned up")
 
@@ -71,7 +76,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX")
+cors_origin_regex = parse_origin_regex()
 
 app.add_middleware(
     CORSMiddleware,
@@ -87,6 +92,22 @@ app.add_middleware(
 def health_check() -> dict:
     model_loaded = hasattr(app.state, "model_service") and hasattr(app.state, "gradcam_service")
     return {"status": "ok", "model_loaded": model_loaded}
+
+
+@app.get("/")
+def root() -> dict:
+    return {
+        "service": "Skin Lesion Inference API",
+        "status": "ok",
+        "health": "/health",
+        "ping": "/ping",
+        "predict": "/predict",
+    }
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon() -> Response:
+    return Response(status_code=204)
 
 
 @app.get("/ping")

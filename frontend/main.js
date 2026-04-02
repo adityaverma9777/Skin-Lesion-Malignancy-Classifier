@@ -1,5 +1,14 @@
 const baseUrlMeta = document.querySelector('meta[name="api-base-url"]');
-const BASE_URL = (baseUrlMeta?.content || "http://127.0.0.1:8000").replace(/\/$/, "");
+const preferredBaseUrl = (baseUrlMeta?.content || "http://127.0.0.1:8000").replace(/\/$/, "");
+const CANDIDATE_BASE_URLS = [
+  preferredBaseUrl,
+  "http://127.0.0.1:8000",
+  "http://localhost:8000",
+  "http://127.0.0.1:8001",
+  "http://localhost:8001",
+].filter((value, index, self) => value && self.indexOf(value) === index);
+
+let activeBaseUrl = preferredBaseUrl;
 
 const form = document.getElementById("predict-form");
 const imageInput = document.getElementById("image-input");
@@ -15,10 +24,36 @@ function setStatus(message, isError = false) {
   statusEl.classList.toggle("error", isError);
 }
 
-function wakeBackendSilently() {
-  fetch(`${BASE_URL}/ping`, { method: "GET" }).catch(() => {
-    // Silence wake-up failures to avoid impacting the UI.
-  });
+async function probeBackend(baseUrl, timeoutMs = 2500) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(`${baseUrl}/ping`, {
+      method: "GET",
+      signal: controller.signal,
+    });
+    return response.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function resolveBackendBaseUrl() {
+  for (const candidate of CANDIDATE_BASE_URLS) {
+    const ok = await probeBackend(candidate);
+    if (ok) {
+      activeBaseUrl = candidate;
+      return candidate;
+    }
+  }
+  activeBaseUrl = preferredBaseUrl;
+  return null;
+}
+
+async function wakeBackendSilently() {
+  await resolveBackendBaseUrl();
 }
 
 async function handlePredict(event) {
@@ -38,7 +73,9 @@ async function handlePredict(event) {
   resultEl.classList.add("hidden");
 
   try {
-    const response = await fetch(`${BASE_URL}/predict`, {
+    await resolveBackendBaseUrl();
+
+    const response = await fetch(`${activeBaseUrl}/predict`, {
       method: "POST",
       body: formData,
     });
@@ -56,7 +93,15 @@ async function handlePredict(event) {
     resultEl.classList.remove("hidden");
     setStatus("Prediction complete.");
   } catch (error) {
-    setStatus(error.message || "Something went wrong.", true);
+    const message = error?.message || "Something went wrong.";
+    if (message === "Failed to fetch") {
+      setStatus(
+        `Cannot reach backend. Make sure backend is running and reachable at ${activeBaseUrl}.`,
+        true,
+      );
+    } else {
+      setStatus(message, true);
+    }
   } finally {
     submitBtn.disabled = false;
   }
