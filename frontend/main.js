@@ -1,5 +1,5 @@
 const baseUrlMeta = document.querySelector('meta[name="api-base-url"]');
-const BASE_URL = (baseUrlMeta?.content || "https://skin-lesion-malignancy-classifier.onrender.com").replace(/\/$/, "");
+const BASE_URL = (baseUrlMeta?.content || "http://127.0.0.1:8000").replace(/\/$/, "");
 
 const form = document.getElementById("predict-form");
 const imageInput = document.getElementById("image-input");

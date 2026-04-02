@@ -71,10 +71,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=parse_origins(),
-    allow_origin_regex=os.getenv("CORS_ORIGIN_REGEX", r"https://.*\.vercel\.app"),
+    allow_origin_regex=cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,6 +1,37 @@
 # Skin Lesion Malignancy Classifier
 
-Full-stack project with a FastAPI backend (Render-ready) and a static frontend (Vercel-ready).
+Hey! This is my skin lesion classification project.
+
+I built this as a full-stack app with a Python backend and a simple frontend so anyone can clone it, run it locally, and test predictions on their own machine.
+
+## What I Built
+
+- A FastAPI backend that loads a trained model once at startup.
+- A frontend where you can upload an image and get:
+  - predicted label (benign or malignant)
+  - probability score
+  - Grad-CAM style heatmap overlay
+
+## How I Trained the Model
+
+I trained the model using the ISIC 2019 Skin Lesion dataset.
+
+The original dataset has multiple skin condition classes. For this project, I converted it into a binary task:
+
+- melanoma (MEL) -> malignant
+- all other classes -> benign
+
+Training setup:
+
+- framework: PyTorch + timm
+- architecture: EfficientNet-B4 (ImageNet pretrained, then fine-tuned)
+- training environment: Kaggle GPU (NVIDIA T4)
+- techniques used: data augmentation, weighted sampling for class imbalance, and Focal Loss
+- optimizer: AdamW
+- main metric: ROC-AUC
+- validation performance: around 0.94 AUC
+
+Final model weights are saved in this repo as best_model.pth and used for inference.
 
 ## Project Structure
 
@@ -11,69 +42,71 @@ project/
 │   ├── model.py
 │   ├── gradcam.py
 │   ├── requirements.txt
+│   ├── smoke_test.py
 │   └── best_model.pth
 ├── frontend/
 │   ├── package.json
+│   ├── package-lock.json
 │   ├── index.html
 │   ├── main.js
 │   └── style.css
+├── run-local.ps1
 └── README.md
 ```
 
-## Backend (FastAPI)
+## How to Start the Project
 
-From the backend folder:
+### Option 1 (Windows quick start)
+
+From project root:
+
+```powershell
+.\run-local.ps1
+```
+
+This starts backend and frontend in separate terminals.
+
+### Option 2 (manual start)
+
+Backend terminal:
 
 ```bash
+cd backend
 pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 8000
+uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-Optional environment variables:
-
-- `MODEL_PATH` (default: `best_model.pth`)
-- `CORS_ORIGINS` (comma-separated list, e.g. `https://your-frontend.vercel.app,http://localhost:5173`)
-- `CORS_ORIGIN_REGEX` (default supports `https://*.vercel.app`)
-- `MAX_IMAGE_BYTES` (default `10485760`)
-- `LOG_LEVEL` (default `INFO`)
-
-API endpoints:
-
-- `GET /health`
-- `GET /ping`
-- `POST /predict` (multipart/form-data, field name: `image`)
-
-## Frontend
-
-The frontend is vanilla JS and calls the backend with multipart/form-data.
-
-Set backend URL in frontend/index.html:
-
-```html
-<meta name="api-base-url" content="https://your-render-service.onrender.com" />
-```
-
-Run locally from the frontend folder:
+Frontend terminal:
 
 ```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-## Deployment Notes
+Then open the frontend URL shown in terminal (usually http://127.0.0.1:5173).
 
-- Render blueprint config is provided in `render.yaml` (root) with `rootDir: backend`.
-- Frontend Vercel config is provided in `frontend/vercel.json`.
-- Ensure backend CORS allows your Vercel domain.
-- The frontend sends a silent wake-up request to GET /ping on load.
+## How to Check If It Is Working
 
-## API Smoke Test
+1. Check backend health in browser:
+	- http://127.0.0.1:8000/health
+	- http://127.0.0.1:8000/ping
 
-After running the backend, you can test one image quickly:
+2. Open frontend and upload an image.
+
+3. Click Predict and verify you get:
+	- label
+	- probability
+	- Grad-CAM image
+
+4. Optional API smoke test:
 
 ```bash
 cd backend
 python smoke_test.py path/to/image.jpg --base-url http://127.0.0.1:8000
 ```
 
-The script checks that label, probability, and Grad-CAM are returned by POST /predict.
+## Notes
+
+- Frontend is already configured to call local backend at http://127.0.0.1:8000.
+- If port 5173 is occupied, frontend may run on another local port.

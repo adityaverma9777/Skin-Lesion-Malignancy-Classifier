@@ -57,7 +57,7 @@ class GradCAM:
                 cam = (weights * self.activations).sum(dim=1)
                 cam = torch.relu(cam).squeeze(0)
             else:
-                # Render free-tier instances are memory constrained; avoid backward pass by default.
+                # Keep memory usage low by default by avoiding backward pass.
                 cam = torch.relu(self.activations.mean(dim=1)).squeeze(0)
 
             max_val = cam.max()
