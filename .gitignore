@@ -1,1 +1,21 @@
-__pycache__
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Frontend dependencies
+frontend/node_modules/
+
+# OS/editor artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local environment overrides
+.env
+.env.*

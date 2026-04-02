@@ -22,7 +22,7 @@ project/
 
 ## Backend (FastAPI)
 
-From the `backend` folder:
+From the backend folder:
 
 ```bash
 pip install -r requirements.txt
@@ -45,15 +45,15 @@ API endpoints:
 
 ## Frontend
 
-The frontend is vanilla JS and calls the backend with `multipart/form-data`.
+The frontend is vanilla JS and calls the backend with multipart/form-data.
 
-Set backend URL in `frontend/index.html`:
+Set backend URL in frontend/index.html:
 
 ```html
 <meta name="api-base-url" content="https://your-render-service.onrender.com" />
 ```
 
-Run locally from the `frontend` folder:
+Run locally from the frontend folder:
 
 ```bash
 npm install
@@ -62,7 +62,18 @@ npm run dev
 
 ## Deployment Notes
 
-- Deploy `backend` on Render.
-- Deploy `frontend` on Vercel.
+- Render blueprint config is provided in `render.yaml` (root) with `rootDir: backend`.
+- Frontend Vercel config is provided in `frontend/vercel.json`.
 - Ensure backend CORS allows your Vercel domain.
-- The frontend sends a silent wake-up request to `GET /ping` on load.
+- The frontend sends a silent wake-up request to GET /ping on load.
+
+## API Smoke Test
+
+After running the backend, you can test one image quickly:
+
+```bash
+cd backend
+python smoke_test.py path/to/image.jpg --base-url http://127.0.0.1:8000
+```
+
+The script checks that label, probability, and Grad-CAM are returned by POST /predict.
