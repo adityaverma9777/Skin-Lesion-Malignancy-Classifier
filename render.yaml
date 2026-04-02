@@ -13,3 +13,5 @@ services:
         value: INFO
       - key: CORS_ORIGIN_REGEX
         value: https://.*\.vercel\.app
+      - key: STRICT_GRADCAM
+        value: "0"

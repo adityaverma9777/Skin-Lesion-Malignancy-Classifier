@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 from threading import Lock
 
@@ -14,6 +15,7 @@ class GradCAM:
         self.target_layer = target_layer or self._find_last_conv_layer(model)
         self.activations: Optional[torch.Tensor] = None
         self.gradients: Optional[torch.Tensor] = None
+        self.strict_mode = os.getenv("STRICT_GRADCAM", "0") == "1"
         self._lock = Lock()
 
         self._forward_handle = self.target_layer.register_forward_hook(self._forward_hook)
@@ -40,17 +42,23 @@ class GradCAM:
     def generate(self, input_tensor: torch.Tensor, original_image: Image.Image) -> Image.Image:
         with self._lock:
             self.model.zero_grad(set_to_none=True)
+            self.gradients = None
 
             output = self.model(input_tensor)
-            score = output.squeeze()
-            score.backward(retain_graph=False)
+            if self.activations is None:
+                raise RuntimeError("Grad-CAM hooks did not capture activations.")
 
-            if self.activations is None or self.gradients is None:
-                raise RuntimeError("Grad-CAM hooks did not capture activations/gradients.")
-
-            weights = self.gradients.mean(dim=(2, 3), keepdim=True)
-            cam = (weights * self.activations).sum(dim=1)
-            cam = torch.relu(cam).squeeze(0)
+            if self.strict_mode:
+                score = output.squeeze()
+                score.backward(retain_graph=False)
+                if self.gradients is None:
+                    raise RuntimeError("Grad-CAM hooks did not capture gradients.")
+                weights = self.gradients.mean(dim=(2, 3), keepdim=True)
+                cam = (weights * self.activations).sum(dim=1)
+                cam = torch.relu(cam).squeeze(0)
+            else:
+                # Render free-tier instances are memory constrained; avoid backward pass by default.
+                cam = torch.relu(self.activations.mean(dim=1)).squeeze(0)
 
             max_val = cam.max()
             if max_val > 0:
