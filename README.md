@@ -56,17 +56,28 @@ project/
 
 ## How to Start the Project
 
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+ (npm included)
+
 ### Option 1 (Windows quick start)
 
-Open PowerShell in project root and run:
+Open PowerShell in the folder that contains README.md and run:
 
 ```powershell
-.\run-local.ps1
+Get-ChildItem .\run-local.ps1
+```
+
+If this command prints run-local.ps1, you are in the correct folder. Then run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-local.ps1
 ```
 
 This starts backend and frontend in separate terminals.
 
-If PowerShell blocks script execution, run this first in the same terminal:
+You can still run with two commands if you prefer:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -92,6 +103,33 @@ npm run dev
 ```
 
 Then open the frontend URL shown in terminal (usually http://127.0.0.1:5173).
+
+## Troubleshooting
+
+### Error: ".\run-local.ps1 is not recognized"
+
+This means PowerShell cannot find the file in your current folder.
+
+1. Check current location:
+
+```powershell
+Get-Location
+```
+
+2. Move into the repo root (the folder that contains run-local.ps1):
+
+```powershell
+cd "C:\Users\adity\OneDrive\Desktop\New folder"
+```
+
+3. Verify file exists and run:
+
+```powershell
+Get-ChildItem .\run-local.ps1
+powershell -ExecutionPolicy Bypass -File .\run-local.ps1
+```
+
+If your repo is in a different folder (for example New folder (2)), use that exact path in cd.
 
 ## How to Check If It Is Working
 
