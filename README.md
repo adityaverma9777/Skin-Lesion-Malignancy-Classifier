@@ -77,6 +77,8 @@ powershell -ExecutionPolicy Bypass -File .\run-local.ps1
 
 This starts backend and frontend in separate terminals.
 
+The launcher now checks if backend port 8000 is already in use and stops early with a clear message.
+
 You can still run with two commands if you prefer:
 
 ```powershell
@@ -91,7 +93,7 @@ Backend terminal:
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn app:app --host 127.0.0.1 --port 8000
+python run_server.py
 ```
 
 Frontend terminal:
@@ -130,6 +132,24 @@ powershell -ExecutionPolicy Bypass -File .\run-local.ps1
 ```
 
 If your repo is in a different folder (for example New folder (2)), use that exact path in cd.
+
+### Backend closes with WinError 10054 on Windows
+
+This is usually a transient client disconnect from the Windows socket layer. The backend now starts through backend/run_server.py, which uses a Windows-safe event loop policy and filters this noisy callback error.
+
+If backend still exits immediately, check port conflict first:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
+```
+
+If another process is listening on 8000, stop that process or start backend on a different port:
+
+```powershell
+cd backend
+$env:PORT = "8001"
+python run_server.py
+```
 
 ## How to Check If It Is Working
 

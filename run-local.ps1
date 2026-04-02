@@ -4,6 +4,11 @@ $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $backendPath = Join-Path $projectRoot "backend"
 $frontendPath = Join-Path $projectRoot "frontend"
 
+function Test-PortInUse {
+	param([int]$Port)
+	return [bool](Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
+}
+
 if (-not (Test-Path $backendPath)) {
 	throw "Backend folder not found at: $backendPath"
 }
@@ -24,7 +29,15 @@ if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
 	throw "npm was not found. Install Node.js (which includes npm) and try again."
 }
 
-$backendCmd = "$pythonCmd -m pip install -r requirements.txt; $pythonCmd -m uvicorn app:app --host 127.0.0.1 --port 8000"
+if (Test-PortInUse -Port 8000) {
+	throw "Port 8000 is already in use. Stop the running process on port 8000, then run this script again."
+}
+
+if (Test-PortInUse -Port 5173) {
+	Write-Warning "Port 5173 is already in use. Frontend may start on a different port."
+}
+
+$backendCmd = "$pythonCmd -m pip install -r requirements.txt; $pythonCmd run_server.py"
 $frontendCmd = "npm install; npm run dev"
 
 Start-Process powershell -WorkingDirectory $backendPath -ArgumentList "-NoExit", "-ExecutionPolicy", "Bypass", "-Command", $backendCmd

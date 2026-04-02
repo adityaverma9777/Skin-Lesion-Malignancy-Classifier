@@ -33,7 +33,7 @@ class SkinLesionModel:
         if not model_path.exists():
             raise FileNotFoundError(f"Model file not found: {model_path}")
 
-        checkpoint = torch.load(model_path, map_location=self.device)
+        checkpoint = self._safe_torch_load(model_path)
         state_dict = self._extract_state_dict(checkpoint)
         state_dict = self._strip_module_prefix(state_dict)
 
@@ -44,6 +44,16 @@ class SkinLesionModel:
             self.model.load_state_dict(state_dict, strict=False)
 
         logger.info("Model loaded from %s", model_path)
+
+    def _safe_torch_load(self, model_path: Path) -> object:
+        try:
+            return torch.load(model_path, map_location=self.device, weights_only=True)
+        except TypeError:
+            # Older torch versions do not support weights_only.
+            return torch.load(model_path, map_location=self.device)
+        except Exception as exc:
+            logger.warning("weights_only load failed (%s). Falling back to default torch.load.", exc)
+            return torch.load(model_path, map_location=self.device)
 
     @staticmethod
     def _extract_state_dict(checkpoint: object) -> Dict[str, torch.Tensor]:
